@@ -1,4 +1,4 @@
-(function() {
+(function () {
 
   'use strict';
 
@@ -17,12 +17,15 @@
     live: true
   }).on('change', showTodos);
 
-  db.info(function(err, info) {
-    db.changes({since: info.update_seq, onChange: showTodos, continuous: true});
+  db.info(function (err, info) {
+    db.changes({ since: info.update_seq, onChange: showTodos, continuous: true });
   });
 
   // We have to create a new todo document and enter it in the database
   function addTodo(text) {
+
+    if ( trimmedText.length <= 0 ) return;
+    
     var todo = {
       _id: new Date().toISOString(),
       title: text,
@@ -33,9 +36,9 @@
         console.log('Successfully posted a todo!');
       }
     }); */
-    db.put( todo )
-      .then( console.log('Insertado') )
-      .catch( console.log);
+    db.put(todo)
+      .then(console.log('Insertado'))
+      .catch(console.log);
   }
 
   // Show the current list of todos by reading them from the database
@@ -45,38 +48,53 @@
       redrawTodosUI(doc.rows);
     }); */
     db.allDocs({ include_docs: true, descending: true })
-      .then( doc => {
+      .then(doc => {
         console.log(doc);
         redrawTodosUI(doc.rows);
       });
   }
 
   function checkboxChanged(todo, event) {
+    //inf de editar
+    console.log(todo);
+    console.log(event);
+    console.log(event.target.checked);
+
     todo.completed = event.target.checked;
     db.put(todo);
+    //.then( console.log('registro actualizado'));
   }
 
   // User pressed the delete button for a todo, delete it
   function deleteButtonPressed(todo) {
+    //eliminar inf
     db.remove(todo);
   }
 
   // The input box when editing a todo has blurred, we should save
   // the new title or delete the todo if the title is empty
   function todoBlurred(todo, event) {
+
+    
+
     var trimmedText = event.target.value.trim();
+
     if (!trimmedText) {
+
       db.remove(todo);
+
     } else {
+
       todo.title = trimmedText;
       db.put(todo);
+
     }
   }
 
   // Initialise a sync with the remote server
   function sync() {
     syncDom.setAttribute('data-sync-state', 'syncing');
-    var remote = new PouchDB(remoteCouch, {headers: {'Cookie': cookie}});
+    var remote = new PouchDB(remoteCouch, { headers: { 'Cookie': cookie } });
     var pushRep = db.replicate.to(remote, {
       continuous: true,
       complete: syncError
@@ -120,12 +138,12 @@
     checkbox.addEventListener('change', checkboxChanged.bind(this, todo));
 
     var label = document.createElement('label');
-    label.appendChild( document.createTextNode(todo.title));
+    label.appendChild(document.createTextNode(todo.title));
     label.addEventListener('dblclick', todoDblClicked.bind(this, todo));
 
     var deleteLink = document.createElement('button');
     deleteLink.className = 'destroy';
-    deleteLink.addEventListener( 'click', deleteButtonPressed.bind(this, todo));
+    deleteLink.addEventListener('click', deleteButtonPressed.bind(this, todo));
 
     var divDisplay = document.createElement('div');
     divDisplay.className = 'view';
@@ -156,12 +174,12 @@
   function redrawTodosUI(todos) {
     var ul = document.getElementById('todo-list');
     ul.innerHTML = '';
-    todos.forEach(function(todo) {
+    todos.forEach(function (todo) {
       ul.appendChild(createTodoListItem(todo.doc));
     });
   }
 
-  function newTodoKeyPressHandler( event ) {
+  function newTodoKeyPressHandler(event) {
     if (event.keyCode === ENTER_KEY) {
       addTodo(newTodoDom.value);
       newTodoDom.value = '';
@@ -182,19 +200,19 @@
   // Host that the couch-persona server is running on
   var authHost = 'http://127.0.0.1:3000';
 
-  var loggedIn = function(result) {
+  var loggedIn = function (result) {
     console.log('logged in:', result);
     remoteCouch = result.dbUrl;
     cookie = result.authToken.replace('HttpOnly', '');
     sync();
   };
 
-  var loggedOut = function() {
+  var loggedOut = function () {
     console.log('logged out!');
   };
 
   function simpleXhrSentinel(xhr) {
-    return function() {
+    return function () {
       if (xhr.readyState !== 4) {
         return;
       }
@@ -202,7 +220,7 @@
         var result = {};
         try {
           result = JSON.parse(xhr.responseText);
-        } catch(e) {}
+        } catch (e) { }
         loggedIn(result);
       } else {
         navigator.id.logout();
@@ -236,7 +254,7 @@
 
   var signinLink = document.getElementById('signin');
   var signoutLink = document.getElementById('signout');
-  signinLink.onclick = function() { navigator.id.request(); };
-  signoutLink.onclick = function() { navigator.id.logout(); };
+  signinLink.onclick = function () { navigator.id.request(); };
+  signoutLink.onclick = function () { navigator.id.logout(); };
 
 })();
