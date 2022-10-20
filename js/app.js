@@ -19,14 +19,18 @@
   // We have to create a new todo document and enter it in the database
   function addTodo(text) {
     var todo = {
+      _id: new Date().toISOString(),
       title: text,
       completed: false
     };
-    db.post(todo, function(err, result) {
+    /* db.post(todo, function(err, result) {
       if (!err) {
         console.log('Successfully posted a todo!');
       }
-    });
+    }); */
+    db.put( todo )
+      .then( console.log('Insertado') )
+      .catch( console.log);
   }
 
   // Show the current list of todos by reading them from the database
