@@ -12,6 +12,11 @@
   var remoteCouch = false;
   var cookie;
 
+  db.changes({
+    since: 'now',
+    live: true
+  }).on('change', showTodos);
+
   db.info(function(err, info) {
     db.changes({since: info.update_seq, onChange: showTodos, continuous: true});
   });
@@ -34,10 +39,16 @@
   }
 
   // Show the current list of todos by reading them from the database
+  //Leer Datos
   function showTodos() {
-    db.allDocs({include_docs: true}, function(err, doc) {
+    /* db.allDocs({ include_docs: true }, function(err, doc) {
       redrawTodosUI(doc.rows);
-    });
+    }); */
+    db.allDocs({ include_docs: true, descending: true })
+      .then( doc => {
+        console.log(doc);
+        redrawTodosUI(doc.rows);
+      });
   }
 
   function checkboxChanged(todo, event) {
